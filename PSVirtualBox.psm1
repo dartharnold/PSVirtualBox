@@ -230,6 +230,7 @@ foreach ($vmachine in $vmachines) {
   $obj = New-Object -TypeName PSObject -Property @{
      Name = $vmachine.name
      State = $vstate
+     Groups=$vmachine.groups
      Description = $vmachine.description
      ID = $vmachine.ID
      OS = $vmachine.OSTypeID
