@@ -412,6 +412,93 @@ End {
 
 } #end function
 
+Function Start-VBoxMachine-Test {
+
+  <#
+  .SYNOPSIS
+  Start a virtual machine
+  .DESCRIPTION
+  Start one or more virtual box machines. The default is to start them in an interactive or GUI mode. But you can also run them headless which will start a new process window, but there will be no interactive console window.
+  .PARAMETER Name
+  The name of a virtual machine. IMPORTANT: Names are case sensitive.
+  .PARAMETER Headless
+  Run the virtual machine in a headless process.
+  .EXAMPLE
+  PS C:\> Start-VBoxMachine "Win7"
+  Starts the virtual machine called Win7 in a GUI mode.
+  .EXAMPLE
+  PS C:\> Start-VBoxMachine CoreDC01 -headless
+  Start virtual machine CoreDC01 headless.
+  .NOTES
+  NAME        :  Start-VBoxMachine
+  VERSION     :  0.9
+  LAST UPDATED:  6/13/2011
+  AUTHOR      :  SERENITY\Jeff
+  .LINK
+  Get-VBoxMachine
+  Stop-VBoxMachine
+  .INPUTS
+  Strings
+  .OUTPUTS
+  None
+  #>
+  
+  [cmdletbinding()]
+  Param(
+  [Parameter(Position=0,Mandatory=$True,HelpMessage="Enter a virtual machine name",
+  ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
+  [ValidateNotNullorEmpty()]
+  [string[]]$Name,
+  [switch]$Headless
+  [switch]$Group
+  )
+  
+  Begin {
+      Write-Verbose "Starting $($myinvocation.mycommand)"
+     #get global vbox variable or create it if it doesn't exist create it
+      if (-Not $global:vbox) {
+          $global:vbox = Get-VirtualBox
+      }
+  }#Begin
+  
+  Process {
+      if ($Group) {
+        Write-Host "Looking for Group(s) $Name"
+      } else {
+        foreach ($item in $name) {
+    
+          #get the virtual machine
+          $vmachine=$vbox.FindMachine($item)
+    
+        if ($vmachine) {
+            #create Vbox session object
+            Write-Verbose "Creating a session object"
+            $vsession = New-Object -ComObject "VirtualBox.Session"
+            if ($vmachine.State -lt 5) {
+              if ($Headless) {
+                Write-Verbose "Starting in headless mode"
+                $vmachine.LaunchVMProcess($vsession,"headless","")
+              }
+              else {
+                $vmachine.LaunchVMProcess($vsession,"gui","")
+              }
+            }
+            else {
+              Write-Host "I can only start machines that have been stopped." -ForegroundColor Magenta
+            }
+    
+        } #if vmachine
+    
+        } #foreach
+      }
+  } #process
+  
+  End {
+      Write-Verbose "Ending $($myinvocation.mycommand)"
+  } #End
+  
+  } #end function
+  
 Function Stop-VBoxMachine {
 
 <#
