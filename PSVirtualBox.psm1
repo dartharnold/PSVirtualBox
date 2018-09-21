@@ -251,7 +251,7 @@ else {
 Write-Verbose "Ending $($myinvocation.mycommand)"
 } #end function
 
-Function Suspend-VBoxMachine {
+Function Suspend-VBoxMachineByID {
 
 <#
 .SYNOPSIS
@@ -330,89 +330,86 @@ End {
 
 } #end function
 
+Function Suspend-VBoxMachine {
+
+  <#
+  .SYNOPSIS
+  Suspend a virtual machine
+  .DESCRIPTION
+  This function will suspend or save the state of a running virtual machine. You must specify the virtual machine by its ID.
+  .PARAMETER ID
+  The ID or GUID of the running virtual machine.
+  .PARAMETER WhatIf
+  Show what the command would have processed
+  .PARAMETER Confirm
+  Confirm each suspension
+  .EXAMPLE
+  PS C:\> Get-VBoxMachine | Suspend-VBoxMachine
+  Suspend all running virtual machines
+  .NOTES
+  NAME        :  Suspend-VBoxMachine
+  VERSION     :  0.9
+  LAST UPDATED:  6/13/2011
+  AUTHOR      :  Jeffery Hicks
+  .LINK
+  Get-VBoxMachine
+  Stop-VBoxMachine
+  Start-VBoxMachine
+  .INPUTS
+  Strings
+  .OUTPUTS
+  None
+  #>
+  
+  [cmdletbinding(SupportsShouldProcess=$True)]
+  Param(
+  [Parameter(Position=0,Mandatory=$True,HelpMessage="Enter a virtual box machine ID",
+  ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
+  [ValidateNotNullorEmpty()]
+  [string[]]$Name
+  )
+  
+  Begin {
+      Write-Verbose "Ending $($myinvocation.mycommand)"
+      #get global vbox variable or create it if it doesn't exist create it
+      if (-Not $global:vbox) {
+          $global:vbox = Get-VirtualBox
+      }
+  } #Begin
+  
+  Process {
+   foreach ($item in $Name) {
+  
+   #get the virtual machine
+   $vmachine = $vbox.FindMachine($item)
+  
+   if ($vmachine) {
+       Write-Host "Suspending $($vmachine.name)" -ForegroundColor Cyan
+       if ($pscmdlet.ShouldProcess($vmachine.name)) {
+           #create Vbox session object
+           Write-Verbose "Creating a session object"
+           $vsession = New-Object -ComObject "VirtualBox.Session"
+           #launch the VMProcess to lock in write mode
+           Write-verbose "Locking the machine"
+           $vmachine.LockMachine($vsession,1)
+           #run the SaveState() method
+           Write-Verbose "Saving State"
+           $vsession.Machine.SaveState()
+       } #should process
+      }
+      else {
+        Write-Warning "Failed to find virtual machine with an id of $ID"
+      }
+   } #foreach $id
+  } #process
+  
+  End {
+      Write-Verbose "Ending $($myinvocation.mycommand)"
+  } #End
+  
+  } #end function
+
 Function Start-VBoxMachine {
-
-<#
-.SYNOPSIS
-Start a virtual machine
-.DESCRIPTION
-Start one or more virtual box machines. The default is to start them in an interactive or GUI mode. But you can also run them headless which will start a new process window, but there will be no interactive console window.
-.PARAMETER Name
-The name of a virtual machine. IMPORTANT: Names are case sensitive.
-.PARAMETER Headless
-Run the virtual machine in a headless process.
-.EXAMPLE
-PS C:\> Start-VBoxMachine "Win7"
-Starts the virtual machine called Win7 in a GUI mode.
-.EXAMPLE
-PS C:\> Start-VBoxMachine CoreDC01 -headless
-Start virtual machine CoreDC01 headless.
-.NOTES
-NAME        :  Start-VBoxMachine
-VERSION     :  0.9
-LAST UPDATED:  6/13/2011
-AUTHOR      :  SERENITY\Jeff
-.LINK
-Get-VBoxMachine
-Stop-VBoxMachine
-.INPUTS
-Strings
-.OUTPUTS
-None
-#>
-
-[cmdletbinding()]
-Param(
-[Parameter(Position=0,Mandatory=$True,HelpMessage="Enter a virtual machine name",
-ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
-[ValidateNotNullorEmpty()]
-[string[]]$Name,
-[switch]$Headless
-)
-
-Begin {
-    Write-Verbose "Starting $($myinvocation.mycommand)"
-   #get global vbox variable or create it if it doesn't exist create it
-    if (-Not $global:vbox) {
-        $global:vbox = Get-VirtualBox
-    }
-}#Begin
-
-Process {
-    foreach ($item in $name) {
-
-      #get the virtual machine
-      $vmachine=$vbox.FindMachine($item)
-
-     if ($vmachine) {
-         #create Vbox session object
-         Write-Verbose "Creating a session object"
-         $vsession = New-Object -ComObject "VirtualBox.Session"
-        if ($vmachine.State -lt 5) {
-          if ($Headless) {
-            Write-Verbose "Starting in headless mode"
-            $vmachine.LaunchVMProcess($vsession,"headless","")
-          }
-          else {
-            $vmachine.LaunchVMProcess($vsession,"gui","")
-          }
-        }
-        else {
-          Write-Host "I can only start machines that have been stopped." -ForegroundColor Magenta
-        }
-
-    } #if vmachine
-
-     } #foreach
-} #process
-
-End {
-    Write-Verbose "Ending $($myinvocation.mycommand)"
-} #End
-
-} #end function
-
-Function Start-VBoxMachine-Test {
 
   <#
   .SYNOPSIS
@@ -420,23 +417,30 @@ Function Start-VBoxMachine-Test {
   .DESCRIPTION
   Start one or more virtual box machines. The default is to start them in an interactive or GUI mode. But you can also run them headless which will start a new process window, but there will be no interactive console window.
   .PARAMETER Name
-  The name of a virtual machine. IMPORTANT: Names are case sensitive.
+  The name of a virtual machine or group. IMPORTANT: Names are case sensitive.
   .PARAMETER Headless
   Run the virtual machine in a headless process.
+  .PARAMETER Group
+  Start all machines in group(s)
   .EXAMPLE
   PS C:\> Start-VBoxMachine "Win7"
   Starts the virtual machine called Win7 in a GUI mode.
+  .EXAMPLE
+  PS C:\> Start-VBoxMachine "/WindowsVMs"
+  Starts the all the virtual machine in group "WindowsVMs" in a GUI mode.
   .EXAMPLE
   PS C:\> Start-VBoxMachine CoreDC01 -headless
   Start virtual machine CoreDC01 headless.
   .NOTES
   NAME        :  Start-VBoxMachine
   VERSION     :  0.9
-  LAST UPDATED:  6/13/2011
+  LAST UPDATED:  9/21/2018
   AUTHOR      :  SERENITY\Jeff
   .LINK
   Get-VBoxMachine
   Stop-VBoxMachine
+  Suspend-VboxMachine
+  Suspend-VboxMachineByID
   .INPUTS
   Strings
   .OUTPUTS
@@ -449,7 +453,7 @@ Function Start-VBoxMachine-Test {
   ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
   [ValidateNotNullorEmpty()]
   [string[]]$Name,
-  [switch]$Headless
+  [switch]$Headless,
   [switch]$Group
   )
   
@@ -463,7 +467,32 @@ Function Start-VBoxMachine-Test {
   
   Process {
       if ($Group) {
-        Write-Host "Looking for Group(s) $Name"
+        Write-Verbose "Getting list of Machines in Group(s)"
+        $vmachines=$vbox.Machines
+        foreach ($vGroup in $Name) {
+          foreach ($member in $vmachines) {
+            if ($member.groups -contains $vGroup) {
+              $vmachine=$vbox.FindMachine($member.name)
+                if ($vmachine) {
+                  #create Vbox session object
+                  Write-Verbose "Creating a session object"
+                  $vsession = New-Object -ComObject "VirtualBox.Session"
+                  if ($vmachine.State -lt 5) {
+                    if ($Headless) {
+                      Write-Verbose "Starting in headless mode"
+                      $vmachine.LaunchVMProcess($vsession,"headless","").OperationDescription
+                    }
+                    else {
+                      $vmachine.LaunchVMProcess($vsession,"gui","").OperationDescription
+                    }
+                  }
+                  else {
+                    Write-Host "I can only start machines that have been stopped." -ForegroundColor Magenta
+                  }
+              } #if vmachine
+            } #if item.groups
+          } #foreach
+        } #foreach
       } else {
         foreach ($item in $name) {
     
@@ -477,10 +506,10 @@ Function Start-VBoxMachine-Test {
             if ($vmachine.State -lt 5) {
               if ($Headless) {
                 Write-Verbose "Starting in headless mode"
-                $vmachine.LaunchVMProcess($vsession,"headless","")
+                $vmachine.LaunchVMProcess($vsession,"headless","").OperationDescription
               }
               else {
-                $vmachine.LaunchVMProcess($vsession,"gui","")
+                $vmachine.LaunchVMProcess($vsession,"gui","").OperationDescription
               }
             }
             else {
@@ -490,7 +519,7 @@ Function Start-VBoxMachine-Test {
         } #if vmachine
     
         } #foreach
-      }
+      } #if group
   } #process
   
   End {
