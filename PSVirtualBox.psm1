@@ -349,8 +349,10 @@ Function Suspend-VBoxMachine {
   Suspend a virtual machine
   .DESCRIPTION
   This function will suspend or save the state of a running virtual machine. You must specify the virtual machine by its ID.
-  .PARAMETER ID
+  .PARAMETER Name
   The ID or GUID of the running virtual machine.
+  .PARAMETER Group
+  Suspend all machines in group(s)
   .PARAMETER WhatIf
   Show what the command would have processed
   .PARAMETER Confirm
@@ -367,6 +369,7 @@ Function Suspend-VBoxMachine {
   Get-VBoxMachine
   Stop-VBoxMachine
   Start-VBoxMachine
+  Suspend-VBoxMachineById
   .INPUTS
   Strings
   .OUTPUTS
