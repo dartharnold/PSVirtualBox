@@ -251,6 +251,29 @@ else {
 Write-Verbose "Ending $($myinvocation.mycommand)"
 } #end function
 
+Function supVMachine {
+  Param (
+    [Parameter(Mandatory=$True, ValueFromPipelineByPropertyName=$True)]
+    [object] $vMachine
+  )
+  Begin{}
+  Process {
+    Write-Host "Suspending $($vmachine.name)" -ForegroundColor Cyan
+    if ($pscmdlet.ShouldProcess($vmachine.name)) {
+        #create Vbox session object
+        Write-Verbose "Creating a session object"
+        $vsession = New-Object -ComObject "VirtualBox.Session"
+        #launch the VMProcess to lock in write mode
+        Write-verbose "Locking the machine"
+        $vmachine.LockMachine($vsession,1)
+        #run the SaveState() method
+        Write-Verbose "Saving State"
+        $vsession.Machine.SaveState().OperationDescription
+    } #should process
+  }#process
+  End{}
+}
+
 Function Suspend-VBoxMachineByID {
 
 <#
@@ -305,18 +328,7 @@ Process {
  $vmachine = $vbox.FindMachine($item)
 
  if ($vmachine) {
-     Write-Host "Suspending $($vmachine.name)" -ForegroundColor Cyan
-     if ($pscmdlet.ShouldProcess($vmachine.name)) {
-         #create Vbox session object
-         Write-Verbose "Creating a session object"
-         $vsession = New-Object -ComObject "VirtualBox.Session"
-         #launch the VMProcess to lock in write mode
-         Write-verbose "Locking the machine"
-         $vmachine.LockMachine($vsession,1)
-         #run the SaveState() method
-         Write-Verbose "Saving State"
-         $vsession.Machine.SaveState()
-     } #should process
+     supVMachine ($vmachine)
     }
     else {
       Write-Warning "Failed to find virtual machine with an id of $ID"
@@ -384,18 +396,7 @@ Function Suspend-VBoxMachine {
    $vmachine = $vbox.FindMachine($item)
   
    if ($vmachine) {
-       Write-Host "Suspending $($vmachine.name)" -ForegroundColor Cyan
-       if ($pscmdlet.ShouldProcess($vmachine.name)) {
-           #create Vbox session object
-           Write-Verbose "Creating a session object"
-           $vsession = New-Object -ComObject "VirtualBox.Session"
-           #launch the VMProcess to lock in write mode
-           Write-verbose "Locking the machine"
-           $vmachine.LockMachine($vsession,1)
-           #run the SaveState() method
-           Write-Verbose "Saving State"
-           $vsession.Machine.SaveState()
-       } #should process
+      supVMachine ($vmachine)
       }
       else {
         Write-Warning "Failed to find virtual machine with an id of $ID"
@@ -674,4 +675,4 @@ New-Alias -Name gvb -Value Get-VirtualBox
 New-Alias -Name gvbp -Value Get-VBoxProcess
 
 #Exporting some module members
-Export-ModuleMember -Alias * -Function * -Variable vbox
+Export-ModuleMember -Alias * -Function Get-VirtualBox, Get-VBoxMachine, Suspend-VBoxMachineByID, Suspend-VboxMachine, Start-VBoxMachine, Stop-VBoxMachine, Get-VBoxProcess -Variable vbox
