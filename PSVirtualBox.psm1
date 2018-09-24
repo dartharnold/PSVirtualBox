@@ -375,10 +375,11 @@ Function Suspend-VBoxMachine {
   
   [cmdletbinding(SupportsShouldProcess=$True)]
   Param(
-  [Parameter(Position=0,Mandatory=$True,HelpMessage="Enter a virtual box machine ID",
+  [Parameter(Position=0,Mandatory=$True,HelpMessage="Enter a virtual box machine Name",
   ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
   [ValidateNotNullorEmpty()]
-  [string[]]$Name
+  [string[]]$Name,
+  [switch]$Group
   )
   
   Begin {
@@ -390,18 +391,34 @@ Function Suspend-VBoxMachine {
   } #Begin
   
   Process {
-   foreach ($item in $Name) {
-  
-   #get the virtual machine
-   $vmachine = $vbox.FindMachine($item)
-  
-   if ($vmachine) {
-      supVMachine ($vmachine)
-      }
-      else {
-        Write-Warning "Failed to find virtual machine with an id of $ID"
-      }
-   } #foreach $id
+    If ($Group){
+      Write-Verbose "Getting list of Machines in Group(s)"
+      $vmachines=$vbox.Machines
+      
+      foreach ($vGroup in $Name) {
+        foreach ($member in $vmachines) {
+          if ($member.groups -contains $vGroup) {
+            $vmachine=$vbox.FindMachine($member.name)
+            if ($vmachine) {
+              supVMachine ($vMachine)
+            } else {
+              Write-Warning "Failed to find virtual machine with an id of $Name"
+            } #if vmachine
+          } #if item.groups
+        } #foreach
+      } #foreach
+    } Else {
+      foreach ($item in $Name) {
+        #get the virtual machine
+        $vmachine = $vbox.FindMachine($item)
+        
+        if ($vmachine) {
+          supVMachine ($vmachine)
+        } else {
+          Write-Warning "Failed to find virtual machine with an id of $Name"
+        } #if vmachine
+      } #foreach
+    } #if Group
   } #process
   
   End {
