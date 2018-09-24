@@ -270,7 +270,37 @@ Function supVMachine {
         Write-Verbose "Saving State"
         $vsession.Machine.SaveState().OperationDescription
     } #should process
-  }#process
+  } #process
+  End{}
+}
+
+Function runVMachine {
+  Param (
+    [Parameter(Position=0, Mandatory=$True)]
+    [Object] $member,
+    [Parameter(Position=1, Mandatory=$False)]
+    [Bool] $Headless
+  )
+  Begin{}
+  Process {
+    $vmachine=$vbox.FindMachine($member)
+    if ($vmachine) {
+      #create Vbox session object
+      Write-Verbose "Creating a session object"
+      $vsession = New-Object -ComObject "VirtualBox.Session"
+      if ($vmachine.State -lt 5) {
+        if ($Headless) {
+          Write-Verbose "Starting in headless mode"
+          $vmachine.LaunchVMProcess($vsession,"headless","").OperationDescription
+        } else {
+          $vmachine.LaunchVMProcess($vsession,"gui","").OperationDescription
+        } #Headless
+      } #State
+    } else {
+      Write-Host "I can only start machines that have been stopped." -ForegroundColor Magenta
+    } #if vmachine
+
+  } #process
   End{}
 }
 
@@ -493,52 +523,14 @@ Function Start-VBoxMachine {
         foreach ($vGroup in $Name) {
           foreach ($member in $vmachines) {
             if ($member.groups -contains $vGroup) {
-              $vmachine=$vbox.FindMachine($member.name)
-                if ($vmachine) {
-                  #create Vbox session object
-                  Write-Verbose "Creating a session object"
-                  $vsession = New-Object -ComObject "VirtualBox.Session"
-                  if ($vmachine.State -lt 5) {
-                    if ($Headless) {
-                      Write-Verbose "Starting in headless mode"
-                      $vmachine.LaunchVMProcess($vsession,"headless","").OperationDescription
-                    }
-                    else {
-                      $vmachine.LaunchVMProcess($vsession,"gui","").OperationDescription
-                    }
-                  }
-                  else {
-                    Write-Host "I can only start machines that have been stopped." -ForegroundColor Magenta
-                  }
-              } #if vmachine
+              runVMachine $member.name $Headless
             } #if item.groups
           } #foreach
         } #foreach
       } else {
         foreach ($item in $name) {
-    
           #get the virtual machine
-          $vmachine=$vbox.FindMachine($item)
-    
-        if ($vmachine) {
-            #create Vbox session object
-            Write-Verbose "Creating a session object"
-            $vsession = New-Object -ComObject "VirtualBox.Session"
-            if ($vmachine.State -lt 5) {
-              if ($Headless) {
-                Write-Verbose "Starting in headless mode"
-                $vmachine.LaunchVMProcess($vsession,"headless","").OperationDescription
-              }
-              else {
-                $vmachine.LaunchVMProcess($vsession,"gui","").OperationDescription
-              }
-            }
-            else {
-              Write-Host "I can only start machines that have been stopped." -ForegroundColor Magenta
-            }
-    
-        } #if vmachine
-    
+          runVMachine $item $Headless
         } #foreach
       } #if group
   } #process
