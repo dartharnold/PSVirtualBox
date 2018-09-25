@@ -308,6 +308,31 @@ Function runVMachine {
   End{}
 }
 
+Function endVmachine {
+  Param (
+    [Parameter(Mandatory=$True, ValueFromPipelineByPropertyName=$True)]
+    [object] $vMachine
+  )
+  Begin{}
+  Process{
+    if ($pscmdlet.ShouldProcess($vmachine.name)) {
+      #create Vbox session object
+      Write-Verbose "Creating a session object"
+      $vsession = New-Object -ComObject "VirtualBox.Session"
+      if ($vmachine.State -eq 5) {
+          Write-verbose "Locking the machine"
+          $vmachine.LockMachine($vsession,1)
+          #send ACPI shutdown signal
+          $vsession.console.PowerButton()
+        } else {
+          Write-Host $vmachine.name -NoNewline -ForegroundColor White
+          Write-Host " is not currently running." -NoNewline -ForegroundColor Yellow
+          Write-Host "Skipping".PadLeft(40-$vmachine.name.Length) -ForegroundColor Red
+      } #State
+    } #should process
+  }
+  End{}
+}
 Function Suspend-VBoxMachineByID {
 
 <#
@@ -487,7 +512,7 @@ Function Start-VBoxMachine {
   .PARAMETER Headless
   Run the virtual machine in a headless process.
   .PARAMETER Group
-  Start all machines in group(s)
+  Start all machines in a group(s)
   .EXAMPLE
   PS C:\> Start-VBoxMachine "Win7"
   Starts the virtual machine called Win7 in a GUI mode.
@@ -565,8 +590,8 @@ Stop a virtual machine
 Stop one or more virtual box machines by sending the ACPI shutdown signal.
 .PARAMETER Name
 The name of a virtual machine. IMPORTANT: Names are case sensitive.
-.PARAMETER Headless
-Run the virtual machine in a headless process.
+.PARAMETER Group
+Stop all machines in a group(s)
 .EXAMPLE
 PS C:\> Stop-VBoxMachine "Win7"
 Stops the virtual machine called Win7
@@ -594,7 +619,8 @@ Param(
 [Parameter(Position=0,Mandatory=$True,HelpMessage="Enter a virtual machine name",
 ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
 [ValidateNotNullorEmpty()]
-[string[]]$Name
+[string[]]$Name,
+[switch]$Group
 )
 
 Begin {
@@ -606,30 +632,31 @@ Begin {
 } #Begin
 
 Process {
+  If ($Group){
+    Write-Verbose "Getting list of Machines in Group(s)"
+    $vmachines=$vbox.Machines
+    
+    foreach ($vGroup in $Name) {
+      foreach ($member in $vmachines) {
+        if ($member.groups -contains $vGroup) {
+          $vmachine=$vbox.FindMachine($member.name)
+          if ($vmachine) {
+            endVmachine $vmachine
+          } #if vmachine
+        }#GroupValidate
+      }#foreach
+    }#vGroup
+  } else {
     foreach ($item in $name) {
-
+    }
       #get the virtual machine
       $vmachine=$vbox.FindMachine($item)
 
-     if ($vmachine) {
-      if ($pscmdlet.ShouldProcess($vmachine.name)) {
-         #create Vbox session object
-         Write-Verbose "Creating a session object"
-         $vsession = New-Object -ComObject "VirtualBox.Session"
-        if ($vmachine.State -eq 5) {
-            Write-verbose "Locking the machine"
-            $vmachine.LockMachine($vsession,1)
-            #send ACPI shutdown signal
-            $vsession.console.PowerButton()
-          } else {
-            Write-Host $vmachine.name -NoNewline -ForegroundColor White
-            Write-Host " is not currently running." -NoNewline -ForegroundColor Yellow
-            Write-Host "Skipping".PadLeft(40-$vmachine.name.Length) -ForegroundColor Red
-        } #State
-      } #should process
-    } #if vmachine
+      if ($vmachine) {
+        endVmachine $vmachine
+      } #if vmachine
 
-     } #foreach
+    } #foreach
 } #process
 
 End {
