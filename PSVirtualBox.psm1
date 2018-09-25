@@ -295,6 +295,10 @@ Function runVMachine {
         } else {
           $vmachine.LaunchVMProcess($vsession,"gui","").OperationDescription
         } #Headless
+      } else {
+        Write-Host $vmachine.name -NoNewline -ForegroundColor White
+        Write-Host " is already started." -NoNewline -ForegroundColor Yellow
+        Write-Host "Skipping".PadLeft(40 - $vmachine.name.Length) -ForegroundColor red
       } #State
     } else {
       Write-Host "I can only start machines that have been stopped." -ForegroundColor Magenta
@@ -432,11 +436,17 @@ Function Suspend-VBoxMachine {
         foreach ($member in $vmachines) {
           if ($member.groups -contains $vGroup) {
             $vmachine=$vbox.FindMachine($member.name)
-            if ($vmachine) {
-              supVMachine ($vMachine)
+            if ($vmachine.State -eq 5) {
+              if ($vmachine) {
+                supVMachine ($vMachine)
+              } else {
+                Write-Warning "Failed to find virtual machine" ($member.name)
+              } #if vmachine
             } else {
-              Write-Warning "Failed to find virtual machine with an id of $Name"
-            } #if vmachine
+              Write-Host -NoNewline ($member.name) -ForegroundColor White
+              Write-Host " is not currently running.  " -NoNewline -ForegroundColor Yellow
+              Write-Host "Skipping".PadLeft(40-$member.name.Length) -ForegroundColor Red
+            }#if state
           } #if item.groups
         } #foreach
       } #foreach
@@ -444,12 +454,17 @@ Function Suspend-VBoxMachine {
       foreach ($item in $Name) {
         #get the virtual machine
         $vmachine = $vbox.FindMachine($item)
-        
-        if ($vmachine) {
-          supVMachine ($vmachine)
+        if ($vmachine.State -eq 5){ 
+          if ($vmachine) {
+            supVMachine ($vmachine)
+          } else {
+            Write-Warning "Failed to find virtual machine" ($member.name)
+          } #if vmachine
         } else {
-          Write-Warning "Failed to find virtual machine with an id of $Name"
-        } #if vmachine
+          Write-Host ($member.name) -NoNewline -ForegroundColor White
+          Write-Host " is not currently running.  " -NoNewline -ForegroundColor Yellow
+          Write-Host "Skipping".PadLeft(40-$member.name.Length) -ForegroundColor Red
+        }#if state
       } #foreach
     } #if Group
   } #process
@@ -606,10 +621,11 @@ Process {
             $vmachine.LockMachine($vsession,1)
             #send ACPI shutdown signal
             $vsession.console.PowerButton()
-          }
-        else {
-          Write-Host "I can only stop machines that are running." -ForegroundColor Magenta
-        }
+          } else {
+            Write-Host $vmachine.name -NoNewline -ForegroundColor White
+            Write-Host " is not currently running." -NoNewline -ForegroundColor Yellow
+            Write-Host "Skipping".PadLeft(40-$vmachine.name.Length) -ForegroundColor Red
+        } #State
       } #should process
     } #if vmachine
 
