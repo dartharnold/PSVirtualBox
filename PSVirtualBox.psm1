@@ -714,11 +714,20 @@ Finally {
 
 } #end function
 
+Function Show-PSVirtualBoxVer {
+  Begin {}
+  Process {
+    Write-Host "Currently running PSVirtualbox Version: " -NoNewline -ForegroundColor Cyan
+    Write-Host $Version -ForegroundColor Yellow
+  }
+  End{}
+}
 #########################################################################################
 
 #Getting a reference to VirtualBox COM object
 $vbox=Get-VirtualBox
 $status="VirtualBox v{0} rev.{1}  Machines: {2}" -f $vbox.version,$vbox.revision,$vbox.machines.count
+$Version="20180924-02"
 Write-Host $status -ForegroundColor Cyan
 
 #Defining some aliases
@@ -730,4 +739,4 @@ New-Alias -Name gvb -Value Get-VirtualBox
 New-Alias -Name gvbp -Value Get-VBoxProcess
 
 #Exporting some module members
-Export-ModuleMember -Alias * -Function Get-VirtualBox, Get-VBoxMachine, Suspend-VBoxMachineByID, Suspend-VboxMachine, Start-VBoxMachine, Stop-VBoxMachine, Get-VBoxProcess -Variable vbox
+Export-ModuleMember -Alias * -Function Get-VirtualBox, Get-VBoxMachine, Suspend-VBoxMachineByID, Suspend-VboxMachine, Start-VBoxMachine, Stop-VBoxMachine, Get-VBoxProcess, Show-PSVirtualBoxVer -Variable vbox
