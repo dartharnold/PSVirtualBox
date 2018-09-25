@@ -737,6 +737,7 @@ New-Alias -Name stavbm -Value Start-VBoxMachine
 New-Alias -Name suvbm -Value Suspend-VBoxMachine
 New-Alias -Name gvb -Value Get-VirtualBox
 New-Alias -Name gvbp -Value Get-VBoxProcess
+New-Alias -Name psvbver -Value Show-PSVirtualBoxVer
 
 #Exporting some module members
 Export-ModuleMember -Alias * -Function Get-VirtualBox, Get-VBoxMachine, Suspend-VBoxMachineByID, Suspend-VboxMachine, Start-VBoxMachine, Stop-VBoxMachine, Get-VBoxProcess, Show-PSVirtualBoxVer -Variable vbox
