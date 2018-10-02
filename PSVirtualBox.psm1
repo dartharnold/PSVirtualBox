@@ -293,7 +293,7 @@ Function runVMachine {
           Write-Verbose "Starting in headless mode"
           $vmachine.LaunchVMProcess($vsession,"headless","").OperationDescription
         } else {
-          $vmachine.LaunchVMProcess($vsession,"gui","").OperationDescription
+          $vmachine.LaunchVMProcess($vsession,"separate","").OperationDescription
         } #Headless
       } else {
         Write-Host $vmachine.name -NoNewline -ForegroundColor White
