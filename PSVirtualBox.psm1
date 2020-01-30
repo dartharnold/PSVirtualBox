@@ -284,6 +284,7 @@ Function runVMachine {
   Begin{}
   Process {
     $vmachine=$vbox.FindMachine($member)
+    $environmentChanges = New-Object string[] 0
     if ($vmachine) {
       #create Vbox session object
       Write-Verbose "Creating a session object"
@@ -291,9 +292,9 @@ Function runVMachine {
       if ($vmachine.State -lt 5) {
         if ($Headless) {
           Write-Verbose "Starting in headless mode"
-          $vmachine.LaunchVMProcess($vsession,"headless","").OperationDescription
+          $vmachine.LaunchVMProcess($vsession,"headless",$environmentChanges).OperationDescription
         } else {
-          $vmachine.LaunchVMProcess($vsession,"separate","").OperationDescription
+          $vmachine.LaunchVMProcess($vsession,"separate",$environmentChanges).OperationDescription
         } #Headless
       } else {
         Write-Host $vmachine.name -NoNewline -ForegroundColor White
