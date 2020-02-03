@@ -46,7 +46,7 @@ Function Open-VBoxMachineConsole {
   Process {
       foreach ($item in $name) {
         #get the virtual machine
-        runVMachine $item
+        runVMachine $item -Console
       } #foreach
   } #process
   
@@ -62,7 +62,8 @@ Function Open-VBoxMachineConsole {
     [Object] $member,
     [Parameter(Position=1, Mandatory=$False)]
     [Bool] $Headless
-    #add switch for console and use it to change behaver of this function.
+    [Parameter(Position=2, Mandatory=$False)]
+    [Bool] $Console
   )
   Begin{}
   Process {
@@ -72,7 +73,8 @@ Function Open-VBoxMachineConsole {
       #create Vbox session object
       Write-Verbose "Creating a session object"
       $vsession = New-Object -ComObject "VirtualBox.Session"
-      if ($vmachine.State -lt 5) {
+      # add an AND !$Console to next check
+      if (($vmachine.State -lt 5) -and (!$Console)) {
         if ($Headless) {
           Write-Verbose "Starting in headless mode"
           $vmachine.LaunchVMProcess($vsession,"headless",$environmentChanges).OperationDescription

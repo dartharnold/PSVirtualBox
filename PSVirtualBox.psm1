@@ -279,7 +279,9 @@ Function runVMachine {
     [Parameter(Position=0, Mandatory=$True)]
     [Object] $member,
     [Parameter(Position=1, Mandatory=$False)]
-    [Bool] $Headless
+    [Bool] $Headless,
+    [Switch] $Console
+
   )
   Begin{}
   Process {
@@ -289,7 +291,7 @@ Function runVMachine {
       #create Vbox session object
       Write-Verbose "Creating a session object"
       $vsession = New-Object -ComObject "VirtualBox.Session"
-      if ($vmachine.State -lt 5) {
+      if (($vmachine.State -lt 5) -or (($vmachine.State -eq 5) -and ($Console))) {
         if ($Headless) {
           Write-Verbose "Starting in headless mode"
           $vmachine.LaunchVMProcess($vsession,"headless",$environmentChanges).OperationDescription
@@ -723,6 +725,66 @@ Function Show-PSVirtualBoxVer {
   }
   End{}
 }
+
+Function Show-VBoxMachine {
+
+  <#
+  .SYNOPSIS
+  Open a virtual machine console that is running headless
+  .DESCRIPTION
+  Open a console window for a headless virtual box machines.
+  .PARAMETER Name
+  The name of a virtual machine. IMPORTANT: Names are case sensitive.
+  .EXAMPLE
+  PS C:\> Show-VBoxMachineConsole "Win7"
+  Open the console for virtual machine called Win7.
+  .NOTES
+  NAME        :  Open-VBoxMachineConsole
+  VERSION     :  0.1
+  LAST UPDATED:  1/31/2020
+  AUTHOR      :  Jeffrey Arnold
+  .LINK
+  Get-VBoxMachine
+  Start-VBoxMachine
+  Stop-VBoxMachine
+  Suspend-VboxMachine
+  Suspend-VboxMachineByID
+  .INPUTS
+  Strings
+  .OUTPUTS
+  None
+  #>
+  
+  [cmdletbinding()]
+  Param(
+  [Parameter(Position=0,Mandatory=$True,HelpMessage="Enter a virtual machine name",
+  ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
+  [ValidateNotNullorEmpty()]
+  [string[]]$Name
+
+  )
+  
+  Begin {
+      Write-Verbose "Starting $($myinvocation.mycommand)"
+     #get global vbox variable or create it if it doesn't exist create it
+      if (-Not $global:vbox) {
+          $global:vbox = Get-VirtualBox
+      }
+  }#Begin
+  
+  Process {
+      foreach ($item in $name) {
+        #get the virtual machine
+        runVMachine $item -Console
+      } #foreach
+  } #process
+  
+  End {
+      Write-Verbose "Ending $($myinvocation.mycommand)"
+  } #End
+  
+  } #end function
+
 #########################################################################################
 
 #Getting a reference to VirtualBox COM object
@@ -741,4 +803,4 @@ New-Alias -Name gvbp -Value Get-VBoxProcess
 New-Alias -Name psvbver -Value Show-PSVirtualBoxVer
 
 #Exporting some module members
-Export-ModuleMember -Alias * -Function Get-VirtualBox, Get-VBoxMachine, Suspend-VBoxMachineByID, Suspend-VboxMachine, Start-VBoxMachine, Stop-VBoxMachine, Get-VBoxProcess, Show-PSVirtualBoxVer -Variable vbox
+Export-ModuleMember -Alias * -Function Get-VirtualBox, Get-VBoxMachine, Suspend-VBoxMachineByID, Suspend-VboxMachine, Start-VBoxMachine, Stop-VBoxMachine, Get-VBoxProcess, Show-PSVirtualBoxVer, Show-VboxMachine -Variable vbox
