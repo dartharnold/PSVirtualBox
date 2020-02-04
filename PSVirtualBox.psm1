@@ -790,7 +790,7 @@ Function Show-VBoxMachine {
 #Getting a reference to VirtualBox COM object
 $vbox=Get-VirtualBox
 $status="VirtualBox v{0} rev.{1}  Machines: {2}" -f $vbox.version,$vbox.revision,$vbox.machines.count
-$Version="20180924-02"
+$Version="20200204-01"
 Write-Host $status -ForegroundColor Cyan
 
 #Defining some aliases
