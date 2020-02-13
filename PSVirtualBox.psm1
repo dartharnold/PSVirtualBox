@@ -6,6 +6,11 @@ TODO:
 Integrate Progress bar
 Create new VM
 Create a new HDD
+Convert VHD to VDI
+List Snapshots
+Create Snapshots
+Revert to Snapshot
+Delte Snapshot
 
 #>
 
