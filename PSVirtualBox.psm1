@@ -10,7 +10,8 @@ Convert VHD to VDI
 List Snapshots
 Create Snapshots
 Revert to Snapshot
-Delte Snapshot
+Delete Snapshot
+Restart VM
 
 #>
 
