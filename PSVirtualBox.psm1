@@ -6,12 +6,6 @@ TODO:
 Integrate Progress bar
 Create new VM
 Create a new HDD
-Convert VHD to VDI
-List Snapshots
-Create Snapshots
-Revert to Snapshot
-Delete Snapshot
-Restart VM
 
 #>
 
@@ -797,7 +791,7 @@ Function Show-VBoxMachine {
 $vbox=Get-VirtualBox
 $status="VirtualBox v{0} rev.{1}  Machines: {2}" -f $vbox.version,$vbox.revision,$vbox.machines.count
 $Version="20200204-01"
-Write-Host $status -ForegroundColor Cyan
+# Write-Host $status -ForegroundColor Cyan
 
 #Defining some aliases
 New-Alias -Name gvbm -Value Get-VBoxMachine
