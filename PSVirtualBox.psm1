@@ -1,12 +1,10 @@
 #Requires -version 2.0
 
 <#
-
 TODO:
 Integrate Progress bar
 Create new VM
 Create a new HDD
-
 #>
 
 <#
@@ -55,7 +53,7 @@ $vbox = New-Object -ComObject "VirtualBox.VirtualBox"
 $vbox
 Write-Verbose "Ending $($myinvocation.mycommand)"
 
-}
+} #end function
 
 Function Get-VBoxMachine {
 
@@ -272,7 +270,7 @@ Function supVMachine {
     } #should process
   } #process
   End{}
-}
+} #end function
 
 Function runVMachine {
   Param (
@@ -309,7 +307,7 @@ Function runVMachine {
 
   } #process
   End{}
-}
+} #end function
 
 Function endVmachine {
   Param (
@@ -335,7 +333,7 @@ Function endVmachine {
     } #should process
   }
   End{}
-}
+} #end function
 Function Suspend-VBoxMachineByID {
 
 <#
@@ -501,7 +499,7 @@ Function Suspend-VBoxMachine {
       Write-Verbose "Ending $($myinvocation.mycommand)"
   } #End
   
-  } #end function
+} #end function
 
 Function Start-VBoxMachine {
 
@@ -582,7 +580,7 @@ Function Start-VBoxMachine {
       Write-Verbose "Ending $($myinvocation.mycommand)"
   } #End
   
-  } #end function
+} #end function
   
 Function Stop-VBoxMachine {
 
@@ -724,7 +722,7 @@ Function Show-PSVirtualBoxVer {
     Write-Host $Version -ForegroundColor Yellow
   }
   End{}
-}
+} #end function
 
 Function Show-VBoxMachine {
 
@@ -783,7 +781,7 @@ Function Show-VBoxMachine {
       Write-Verbose "Ending $($myinvocation.mycommand)"
   } #End
   
-  } #end function
+} #end function
 
 #########################################################################################
 
